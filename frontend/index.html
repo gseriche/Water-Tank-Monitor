@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Water Monitor</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 2rem;
+    }
+    .container {
+      max-width: 600px;
+      margin: auto;
+    }
+    .form-group {
+      margin-bottom: 1rem;
+    }
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+    }
+    input, button {
+      width: 100%;
+      padding: 0.5rem;
+      margin-bottom: 1rem;
+    }
+    button {
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Water Monitor</h1>
+    <div class="form-group">
+      <label for="liters">Litros actuales:</label>
+      <input type="number" id="liters" placeholder="Ejemplo: 2800">
+      <button onclick="registerMeasurement()">Registrar Medición</button>
+    </div>
+    <div class="form-group">
+      <button onclick="fetchStats()">Ver Estadísticas</button>
+    </div>
+    <div id="output"></div>
+  </div>
+
+  <script>
+    const API_URL = "http://localhost:8000";
+
+    // Registrar una medición
+    async function registerMeasurement() {
+      const liters = document.getElementById("liters").value;
+      const response = await fetch(`${API_URL}/measurements`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ liters: parseFloat(liters) }),
+      });
+
+      if (response.ok) {
+        document.getElementById("output").innerHTML = "<p>Medición registrada correctamente.</p>";
+      } else {
+        document.getElementById("output").innerHTML = "<p>Error al registrar la medición.</p>";
+      }
+    }
+
+    // Obtener estadísticas
+    async function fetchStats() {
+      const response = await fetch(`${API_URL}/stats`);
+      if (response.ok) {
+        const stats = await response.json();
+        document.getElementById("output").innerHTML = `
+          <p>Consumo promedio por hora: ${stats.consumption_per_hour} litros</p>
+          <p>Días hasta 200 litros: ${stats.days_to_critical} días</p>
+        `;
+      } else {
+        const error = await response.json();
+        document.getElementById("output").innerHTML = `<p>Error: ${error.detail}</p>`;
+      }
+    }
+  </script>
+</body>
+</html>
